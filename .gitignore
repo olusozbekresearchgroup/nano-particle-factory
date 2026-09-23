@@ -11,6 +11,7 @@ dist/
 .idea/
 .vscode/
 .codex/
+.codex
 
 # Generated nanoparticle and analysis output
 site_count_batch_*.tsv
