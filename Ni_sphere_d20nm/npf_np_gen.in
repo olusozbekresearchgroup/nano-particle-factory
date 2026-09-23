@@ -1,0 +1,16 @@
+shape = sphere
+crystal_file = /mnt/DEPO/Projects/in_progress/npf_v1/Ni.cif
+input_file_name = npf_np_gen.in
+output_file_name = Ni_sphere_d20nm.xyz
+tag = Ni_sphere_d20nm
+element = Ni
+crystal_structure = cubic
+crystal_variant = fcc
+radius = 10.0
+a = 3.47514587
+b = 3.47514587
+c = 3.47514587
+alpha = 90.0
+beta = 90.0
+gamma = 90.0
+verbose = true

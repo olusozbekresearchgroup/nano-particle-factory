@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nano-particle-factory"
+version = "0.1.0"
+description = "Crystal-driven nanoparticle generation and surface-site analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ase>=3.22",
+    "matplotlib>=3.7",
+    "numpy>=1.23",
+    "scipy>=1.9",
+    "spglib>=2.0",
+    "PySide6>=6.5",
+]
+
+[project.optional-dependencies]
+development = ["pytest>=7", "openpyxl>=3.1"]
+md = ["lammps"]
+
+[project.scripts]
+npf = "npf.cli:main"
+npf-gui = "npf.gui.launcher:main"
+npf-generate = "npf.cli:main"
+npf-count = "npf.count.main:main"
+npf-relax = "npf.relax.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "modules"}
+
+[tool.setuptools.packages.find]
+where = ["modules"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

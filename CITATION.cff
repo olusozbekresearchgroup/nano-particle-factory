@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "Nano Particle Factory"
+message: "If you use Nano Particle Factory, please cite this software."
+type: software
+authors:
+  - name: "Olus Ozbek Research Group"
+version: "0.1.0"
+date-released: 2026-09-23
+repository-code: "https://github.com/olusozbekresearchgroup/nano-particle-factory"
+license: Apache-2.0
+keywords:
+  - nanoparticle
+  - nanocluster
+  - surface science
+  - active sites
+  - atomistic modeling
+  - computational chemistry

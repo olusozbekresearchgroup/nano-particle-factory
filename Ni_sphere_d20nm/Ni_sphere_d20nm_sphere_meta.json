@@ -1,0 +1,18 @@
+{
+  "tag": "Ni_sphere_d20nm",
+  "shape": "sphere",
+  "source_crystal": "/mnt/DEPO/Projects/in_progress/npf_v1/Ni.cif",
+  "source_formula": "Ni",
+  "source_species": [
+    "Ni"
+  ],
+  "crystal_structure": "cubic",
+  "crystal_variant": "fcc",
+  "target_atoms": null,
+  "target_radius": 10.0,
+  "n_atoms": 420,
+  "actual_radius": 9.943715619453263,
+  "formula": "Ni",
+  "surfaces_hkl": [],
+  "surface_energies": []
+}

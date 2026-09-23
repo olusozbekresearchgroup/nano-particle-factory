@@ -1,0 +1,299 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os
+import sys
+import yaml
+import matplotlib.pyplot as plt
+from ase.calculators.eam import EAM
+from ase.io import write, read
+from scipy.spatial import ConvexHull
+
+# --- Define bin and modules directories ---
+BIN_DIR = os.path.dirname(os.path.realpath(__file__))  # Full path to 'bin' folder
+MODULES_DIR = os.path.abspath(os.path.join(BIN_DIR, "..", "modules"))
+
+# ✅ Debug check
+#print(f"📂 BIN_DIR resolved to: {BIN_DIR}")
+#print(f"📂 MODULES_DIR resolved to: {MODULES_DIR}")
+
+# Pass input file path from shell
+if len(sys.argv) != 2:
+    print("Usage: npf.cluster <input_file>")
+    sys.exit(1)
+
+input_file = sys.argv[1]
+
+# Add modules path to sys.path if not already included
+if MODULES_DIR not in sys.path:
+    sys.path.insert(0, MODULES_DIR)
+
+# Import available geometry modules
+from wulff import generate_wulff_clusters
+from cube import generate_cube_clusters
+from octahedron import generate_octahedron_clusters
+from decahedron import generate_decahedron_clusters
+from dodecahedron import generate_dodecahedron_clusters
+from icosahedron import generate_icosahedron_clusters
+from cuboctahedron import generate_cuboctahedron_clusters
+from morphed_spherical import generate_morphed_spherical_clusters
+
+# Read YAML input
+with open(input_file, 'r') as f:
+    params = yaml.safe_load(f)
+
+# --- Load and check potential file ---
+potential_name = params.get("potential")
+if not potential_name:
+    print("❌ Error: No 'potential' specified in the input YAML.")
+    sys.exit(1)
+
+# Resolve potential search paths
+project_root = os.path.abspath(os.path.join(BIN_DIR, ".."))
+potentials_dir = os.path.join(project_root, "potentials")
+job_dir = os.path.dirname(os.path.abspath(input_file))
+
+potential_paths = [
+    os.path.join(potentials_dir, potential_name),
+    os.path.join(job_dir, potential_name),
+    potential_name  # fallback: raw or absolute path
+]
+
+for path in potential_paths:
+    if os.path.isfile(path):
+        potential_path = os.path.abspath(path)
+        print(f"📦 Using EAM potential: {potential_path}")
+        break
+else:
+    print("❌ Error: Potential file not found.")
+    print("🔍 Searched paths:")
+    print(f"   1. {os.path.join(potentials_dir, potential_name)}")
+    print(f"   2. {os.path.join(job_dir, potential_name)}")
+    print(f"   3. {potential_name}")
+    sys.exit(1)
+
+# 💡 Add potential path into params for module use
+params["potential_path"] = potential_path
+
+job_dir = os.path.dirname(input_file)
+
+geometry_list = params.get("geometry_types", [])
+os.makedirs("output", exist_ok=True)
+summary_lines = ["# Surfaces\tAtoms\tTotal_Energy(eV)\tEnergy_per_atom(eV)\tGeometry\tFile"]
+
+# --- Loop through geometries ---
+for geom in geometry_list:
+    try:
+        if geom == "wulff":
+            clusters = generate_wulff_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"wulff_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}\t{n_atoms:<6}\t{energy:>16.6f}\t{e_per_atom:>16.6f}\twulff\t{fname}")
+                print(f"✅ Wulff ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "cube":
+            clusters = generate_cube_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"cube_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}\t{n_atoms:<6}\t{energy:>16.6f}\t{e_per_atom:>16.6f}\tcube\t{fname}")
+                print(f"✅ Cube ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "octahedron":
+            clusters = generate_octahedron_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"octahedron_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}  {n_atoms:<6}    {energy:>16.6f} {e_per_atom:>16.6f} octahedron  {fname}")
+                print(f"✅ Octahedron ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "decahedron":
+            clusters = generate_decahedron_clusters(params)
+            print(f"📦 Clusters returned for decahedron: {clusters}")
+            print(f"📦 Type of clusters: {type(clusters)}")
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"decahedron_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}  {n_atoms:<6}    {energy:>16.6f} {e_per_atom:>16.6f} decahedron  {fname}")
+                print(f"✅ Decahedron ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "dodecahedron":
+            clusters = generate_dodecahedron_clusters(params)
+            print(f"📦 Clusters returned for dodecahedron: {clusters}")
+            print(f"📦 Type of clusters: {type(clusters)}")
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"dodecahedron_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}      {n_atoms:<6}    {energy:>16.6f} {e_per_atom:>16.6f}     dodecahedron      {fname}")
+                print(f"✅ dodecahedron ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "morphed_spherical":
+            clusters = generate_morphed_spherical_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"morphed_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}\t{n_atoms:<6}\t{energy:>16.6f}\t{e_per_atom:>16.6f}\tmorphed_spherical\t{fname}")
+                print(f"✅ Morphed ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "icosahedron":
+            clusters = generate_icosahedron_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"icosahedron_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}    {n_atoms:<6}    {energy:>16.6f}    {e_per_atom:>16.6f}    icosahedron    {fname}")
+                print(f"✅ Icosahedron ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        elif geom == "cuboctahedron":
+            clusters = generate_cuboctahedron_clusters(params)
+            for label, cluster in clusters:
+                n_atoms = len(cluster)
+                cluster.calc = EAM(potential=potential_path)
+                energy = cluster.get_potential_energy()
+                e_per_atom = energy / n_atoms
+                fname = f"cuboctahedron_{label}_{n_atoms}atoms.xyz"
+                write(f"output/{fname}", cluster)
+                summary_lines.append(f"{label:<20}    {n_atoms:<6}    {energy:>16.6f}    {e_per_atom:>16.6f}    cuboctahedron    {fname}")
+                print(f"✅ Cuboctahedron ({label}): saved {fname} with E/n = {e_per_atom:.4f} eV")
+
+        else:
+            print(f"⚠️  Unknown geometry type: {geom}")
+
+    except Exception as e:
+        print(f"❌ Error while processing geometry '{geom}': {e}")
+
+# Sort summary by energy per atom
+def extract_energy_per_atom(line):
+    try:
+        if not isinstance(line, str):
+            return float('inf')
+        return float(line.split()[3])
+    except (IndexError, ValueError):
+        return float('inf')
+
+summary_sorted = [summary_lines[0]] + sorted(summary_lines[1:], key=extract_energy_per_atom)
+
+# Filter out non-string entries (just in case)
+summary_sorted_clean = [line for line in summary_sorted if isinstance(line, str)]
+
+summary_path = os.path.join("output", f"summary_{params['target_diameter_nm']:.2f}nm.txt")
+with open(summary_path, 'w') as f:
+    f.write("\n".join(summary_sorted_clean) + "\n")
+
+print(f"\n📄 Summary written to: {summary_path}")
+
+# === Sort summary by E/atom and add surface area + notes ===
+summary_data = []
+for line in summary_lines[1:]:
+    parts = line.split()
+    if len(parts) < 6:
+        continue
+    try:
+        label, atoms, energy, e_per_atom, geom, fname = parts[:6]
+        atoms = int(atoms)
+        e_per_atom = float(e_per_atom)
+        file_path = os.path.join("output", fname)
+
+        # Load structure and compute convex hull surface area
+        cluster = read(file_path)
+        pos = cluster.get_positions()
+        sa = ConvexHull(pos).area if len(pos) >= 4 else float('nan')
+        sa_per_atom = sa / atoms if atoms else float('nan')
+
+        # Note field
+        note = ""
+        if "pseudo" in label.lower():
+            note = "compressed"
+        elif geom in ("icosahedron", "dodecahedron"):
+            note = "strained"
+
+        summary_data.append((label, atoms, float(energy), e_per_atom, geom, fname, sa, sa_per_atom, note))
+
+    except Exception as e:
+        print(f"⚠️  Could not process {line}: {e}")
+
+# Sort by energy per atom
+summary_data.sort(key=lambda x: x[3])
+
+# Save detailed summary
+summary_path = os.path.join("output", f"summary_{params['target_diameter_nm']:.2f}nm.txt")
+with open(summary_path, 'w') as f:
+    f.write("# Label\tAtoms\tTotalEnergy(eV)\tE_per_atom(eV)\tGeometry\tFile\tSurfaceArea(Å^2)\tSA_per_atom\tNote\n")
+    for row in summary_data:
+        f.write(f"{row[0]:<20}\t{row[1]:<6}\t{row[2]:>16.6f}\t{row[3]:>16.6f}\t{row[4]:<15}\t{row[5]:<30}\t{row[6]:>12.3f}\t{row[7]:>10.4f}\t{row[8]}\n")
+
+# Gnuplot data files
+with open("output/energy_vs_atoms.dat", 'w') as f:
+    for row in summary_data:
+        f.write(f"{row[1]}\t{row[3]}\n")
+
+with open("output/energy_vs_atoms_labeled.dat", 'w') as f:
+    for row in summary_data:
+        f.write(f"{row[0]}\t{row[1]}\t{row[3]}\n")  # label, atoms, E/n
+
+with open("output/energy_vs_sa_per_atom.dat", 'w') as f:
+    for row in summary_data:
+        if row[7] == row[7]:  # not NaN
+            f.write(f"{row[7]:.6f}\t{row[3]:.6f}\n")
+
+with open("output/energy_vs_sa_per_atom_labeled.dat", 'w') as f:
+    for row in summary_data:
+        if row[7] == row[7]:  # not NaN
+            f.write(f"{row[0]}\t{row[7]:.6f}\t{row[3]:.6f}\n")
+
+# Gnuplot scripts
+with open("output/plot_energy_vs_atoms.gp", 'w') as f:
+    f.write("""\
+set terminal wxt size 800,600 enhanced font 'Arial,12'
+set title "Energy per Atom vs Atom Count"
+set xlabel "Number of Atoms"
+set ylabel "Energy per Atom (eV)"
+set grid
+set key off
+plot 'energy_vs_atoms_labeled.dat' using 2:3:1 with labels offset char 1,1 tc rgb "blue" notitle, \\
+     'energy_vs_atoms_labeled.dat' using 2:3 with points pt 7 ps 1.5 lc rgb "black" title 'Cluster Geometries'
+pause -1
+""")
+
+with open("output/plot_energy_vs_sa_per_atom.gp", 'w') as f:
+    f.write("""\
+set terminal wxt size 800,600 enhanced font 'Arial,12'
+set title "Energy per Atom vs Surface Area per Atom"
+set xlabel "Surface Area per Atom (Å²)"
+set ylabel "Energy per Atom (eV)"
+set grid
+set key off
+plot 'energy_vs_sa_per_atom_labeled.dat' using 2:3:1 with labels offset char 1,1 tc rgb "green" notitle, \\
+     'energy_vs_sa_per_atom_labeled.dat' using 2:3 with points pt 7 ps 1.5 lc rgb "black" title 'Cluster Geometries'
+pause -1
+""")
+
+

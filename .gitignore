@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.codex/
+
+# Generated nanoparticle and analysis output
+site_count_batch_*.tsv
+site_count_batch.log
+site_count_*.csv
+*_marked.xyz
+*.traj
+*.dump
+*.log
+
+# Local scientific inputs/results that should be added deliberately
+OUTCAR
+vasprun.xml
+CONTCAR

@@ -1,0 +1,9 @@
+shape = ico
+input_file_name = np_gen.in
+output_file_name = Ru_ico_d20.xyz
+tag = Ru_ico_d20
+element = Ru
+radius = 10.0
+verbose = true
+a = 2.706
+c = 4.282

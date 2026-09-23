@@ -1,0 +1,29 @@
+[np_sites]
+# Input structure can be provided on the CLI or here:
+# structure = POSCAR
+
+# CN mode: fixed | auto | adaptive12
+mode = auto
+
+# Used only when mode=fixed
+cutoff = 3.90
+
+# Histogram window for auto cutoff detection
+hist_rmin = 1.8
+hist_rmax = 4.2
+
+# Surface if CN < threshold
+surface_threshold = 12
+
+# Geometry/motif tolerances
+r_nbr = 3.6
+max_angle = 12.0
+planarity = 0.02
+edge_tol = 0.10
+
+# Optional facet family labeling
+index_facets = hcp
+
+# Tag for output filenames
+tag = NP
+
